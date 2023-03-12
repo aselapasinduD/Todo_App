@@ -1,0 +1,7 @@
+Sunday : ['to go', 'to date', 'to fun', 'to eat', 'to spleep', 'to run']
+Monday : ['to study', 'to run', 'to eat', 'tosleep']
+Tuesday : []
+Wednesday : []
+Thursday : []
+Friday : []
+Saturday : []
