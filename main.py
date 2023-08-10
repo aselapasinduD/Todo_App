@@ -1,42 +1,13 @@
-from prettytable import PrettyTable
-import copy
+import sys
+
+# Import App funtions:
+sys.path.insert(0, './src/functions')
+from printtables import myToDoTable, myToDoTableOneDay
 
 print ("To Do List")
 
-instruction = ("\n1. Add ToDo Activities : Add\n2. Mark ToDo Activity Done : done\n3. Remove ToDo Activity : Remove\n4. Edit ToDo Activity : Edit\n5. Print ToDo Activities : todo\n6. Clean ToDo Activities : Clean")
+instruction = ("\n1. Add ToDo Activities : Add\n2. Mark ToDo Activity Done : Done\n3. Remove ToDo Activity : Remove\n4. Edit ToDo Activity : Edit\n5. Print ToDo Activities : ToDo\n6. Clean ToDo Activities : Clean\n7. Exit Application: Exit")
 print(instruction)
-
-# Fill the blank todoList using (-)
-def fillBlankToDo(todo_lists):
-    newtodo_lists = copy.deepcopy(todo_lists)
-    maxLenInList = 0
-    for day in newtodo_lists:
-        if maxLenInList < len(newtodo_lists[day]):
-            maxLenInList = len(newtodo_lists[day])
-    for day in todo_lists:
-        newmaxLenInList = maxLenInList - len(newtodo_lists[day])
-        if newmaxLenInList != 0 and newmaxLenInList > 0:
-            for i in range(newmaxLenInList):
-                newtodo_lists[day].append("-")
-    return newtodo_lists
-
-# PrettyTabel for todoList
-def myToDoTable(todo_lists):
-    myTable = PrettyTable()
-    newtodo_lists = fillBlankToDo(todo_lists)
-    myTable.add_column("Sunday", newtodo_lists["Sunday"])
-    myTable.add_column("Monday", newtodo_lists["Monday"])
-    myTable.add_column("Tuesday", newtodo_lists["Tuesday"])
-    myTable.add_column("Wednesday", newtodo_lists["Wednesday"])
-    myTable.add_column("Thursday", newtodo_lists["Thursday"])
-    myTable.add_column("Friday", newtodo_lists["Friday"])
-    myTable.add_column("Saturday", newtodo_lists["Saturday"])
-    #myTable.add_autoindex("rowNumber")
-    print(myTable, "\n")
-def myToDoTableOneDay(day, todo_list):
-    myTableOneDay = PrettyTable()
-    myTableOneDay.add_column(day, todo_list)
-    print(myTableOneDay, "\n")
 
 # SetupLists and Old Lists
 def setupList():
@@ -57,7 +28,7 @@ def setupList():
         myToDoTable(todoList)
         oldToDoList.close()
     except:
-        #this will run if "Save_todo_list.txt" isn't in.
+        #this will run if "Save_todo_list.txt" didn't exists.
         todoList = {"Sunday":[], "Monday":[], "Tuesday":[], "Wednesday":[], "Thursday":[], "Friday":[], "Saturday":[]}
         myToDoTable(todoList)
 
@@ -115,17 +86,21 @@ while True:
         for todo_activity in todo:
             todoList[day].append(todo_activity)
         writeToDo(todoList)
-
+    elif command == "done":
+        print("coming soon")
     elif command == "edit":
         # Edit added Todo list
         day,rowNum = getToDoList()
-        print(todoList[day][rowNum])
+        print("You going to change this work - ", todoList[day][rowNum])
         todoList[day][rowNum] = input("Enter your Changes todo - ")
         writeToDo(todoList)
         print ("Update Success\n")
-
     elif command == "todo":
-        print(myToDoTable(todoList))
+        which_day = input("Which day do you want print(If you want all days Enter \"all\": ")
+        if which_day == "all":
+            myToDoTable(todoList)
+        else:
+            myToDoTableOneDay(which_day, todoList)
     elif command == "remove":
         day,rowNum = getToDoList()
         print(todoList[day][rowNum])
@@ -139,3 +114,7 @@ while True:
         else:
             todoList[day.title()] = []
             writeToDo(todoList)
+    elif command == "exit":
+        exit()
+    else:
+        print("Enter the correct commands from instructions")

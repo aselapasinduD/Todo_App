@@ -1,5 +1,5 @@
-Sunday : ['to go', 'to date', 'to fun', 'to eat', 'to spleep', 'to run']
-Monday : ['to study', 'to run', 'to eat', 'tosleep']
+Sunday : ['to go', 'to date', 'to fun', 'to spleep', 'to run']
+Monday : ['goto gym', 'read new book', 'Create New Poems', 'Typing Practice']
 Tuesday : []
 Wednesday : []
 Thursday : []
