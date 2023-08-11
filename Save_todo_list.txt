@@ -1,6 +1,6 @@
 Sunday : ['to go', 'to date', 'to fun', 'to spleep', 'to run']
 Monday : ['goto gym', 'read new book', 'Create New Poems', 'Typing Practice']
-Tuesday : []
+Tuesday : ['python project', 'Web Project', 'Assignments', 'laundry day']
 Wednesday : []
 Thursday : []
 Friday : []

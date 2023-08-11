@@ -1,52 +1,57 @@
 import sys
+import tkinter as tk
 
 # Import App funtions:
 sys.path.insert(0, './src/functions')
 from printtables import myToDoTable, myToDoTableOneDay
+from setuptodolist import setupList, writeToDo
+
+# SetupOld Lists
+todoList = setupList()
+
+app_bg = "#ffffff"
+column_bg = "#a0c6f2"
+
+
+gui_V = input("Do you wanna run GUI Version (Y/n): ")
+if True:
+
+    root = tk.Tk()
+    root.title("ToDo App")
+    root.eval("tk::PlaceWindow . center")
+
+    frame1 = tk.Frame(root, width=800, height=400, bg=app_bg)
+    frame1.grid(row=0, column=0)
+    frame1.pack_propagate(False)
+
+    for i, day in enumerate(todoList):
+        tk.Label(frame1, text=day, bg = column_bg, font=("TkMenuFont", 14), width=16, height=1).grid(row=0, column=i)
+        for x, value in enumerate(todoList[day]):
+            tk.Label(frame1, text=value, bg = column_bg, font=("TkMenuFont", 12), width=20, height=1).grid(row=x + 1, column=i)
+        break
+
+    tk.Button(
+        frame1,
+        text = "Print Todo Table",
+        font = ("TkHeadingFont", 20),
+        bg = "#28393a",
+        fg = "white",
+        cursor = "hand2",
+        activebackground = "#babee2",
+        activeforeground = "black",
+        command = lambda:myToDoTable(todoList)
+    ).pack(pady=20)
+
+
+
+
+    root.mainloop()
+    exit()
 
 print ("To Do List")
-
 instruction = ("\n1. Add ToDo Activities : Add\n2. Mark ToDo Activity Done : Done\n3. Remove ToDo Activity : Remove\n4. Edit ToDo Activity : Edit\n5. Print ToDo Activities : ToDo\n6. Clean ToDo Activities : Clean\n7. Exit Application: Exit")
 print(instruction)
 
-# SetupLists and Old Lists
-def setupList():
-    global todoList
-    try:
-        #this will run if "Save_todo_list.txt" is in.
-        oldToDoList = open("Save_todo_list.txt", "r")
-        oldToDoListRead = oldToDoList.read()
-        oldToDoListRead = [x for x in oldToDoListRead.split("\n") if len(x) > 1]
-        oldToDoListRead = {l.split(":")[0].strip():l.split(":")[1].strip() for l in oldToDoListRead}
-        for day in oldToDoListRead:
-            if oldToDoListRead[day] == "[]":
-                oldToDoListRead[day] = []
-            else:
-                oldToDoListRead[day] = oldToDoListRead[day].replace("[", "").replace("]", "").replace("'", "")
-                oldToDoListRead[day] = [x.strip() for x in oldToDoListRead[day].split(",")]
-        todoList = oldToDoListRead
-        myToDoTable(todoList)
-        oldToDoList.close()
-    except:
-        #this will run if "Save_todo_list.txt" didn't exists.
-        todoList = {"Sunday":[], "Monday":[], "Tuesday":[], "Wednesday":[], "Thursday":[], "Friday":[], "Saturday":[]}
-        myToDoTable(todoList)
-
-# SetupOld Lists
-setupList()
-
-#Write Text File For ToDo list
-def writeToDo(todo_lists):
-    if input("Are you sure do you want to write permanently(y/n): ") == "y":
-       todoFile = open("Save_todo_list.txt", "w+")
-       for day,todo in todo_lists.items():
-           todoFile.write("%s : %s\n" % (day, todo))
-       todoFile.close()
-       setupList()
-       print("Successfully Wrote\n")
-    else:
-        setupList()
-        print("Unsuccessfully Wrote\n")
 
 # getToDoList can return day and row-number of todoList within lists
 def getToDoList():

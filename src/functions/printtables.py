@@ -28,6 +28,7 @@ def myToDoTable(todo_lists):
     myTable.add_column("Saturday", newtodo_lists["Saturday"])
     #myTable.add_autoindex("rowNumber")
     print(myTable, "\n")
+    return myTable
 
 def myToDoTableOneDay(day, todo_list):
     myTableOneDay = PrettyTable()
