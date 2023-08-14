@@ -18,6 +18,7 @@ if True:
 
     root = tk.Tk()
     root.title("ToDo App")
+    root.geometry('500x500')
     root.eval("tk::PlaceWindow . center")
 
     frame1 = tk.Frame(root, width=800, height=400, bg=app_bg)
@@ -25,10 +26,9 @@ if True:
     frame1.pack_propagate(False)
 
     for i, day in enumerate(todoList):
-        tk.Label(frame1, text=day, bg = column_bg, font=("TkMenuFont", 14), width=16, height=1).grid(row=0, column=i)
+        tk.Label(frame1, text=day, bg = column_bg, font=("TkMenuFont", 14), width=16, height=1, ipadx = 10).grid(row=1, column=i)
         for x, value in enumerate(todoList[day]):
-            tk.Label(frame1, text=value, bg = column_bg, font=("TkMenuFont", 12), width=20, height=1).grid(row=x + 1, column=i)
-        break
+            tk.Label(frame1, text=value, bg = column_bg, font=("TkMenuFont", 12), width=20, height=1).grid(row=x + 2, column=i)
 
     tk.Button(
         frame1,
