@@ -21,16 +21,16 @@ ctk.set_appearance_mode("system")
 class addwindow(ctk.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.geometry("380x500")
+        self.geometry("400x500")
         self.resizable(True, True)
 
         self.entrykeys = []
 
         #self.label = ctk.CTkLabel(self, text="ToplevelWindow")
         #self.label.pack(pady = 10)
-        var = ctk.StringVar(value="Sunday")
-        self.dayMenu = ctk.CTkOptionMenu(self, font=("TkMenuFont", 20), values=list(todoList.keys()), anchor="center", variable=var, command=self.newprint)
-        self.dayMenu.pack(fill="both",pady=20, padx=10)
+        self.dayMenu = ctk.CTkOptionMenu(self, font=("TkMenuFont", 20), values=list(todoList.keys()), anchor="center")
+        self.dayMenu.pack(fill="both",pady=20)
+        print(self.dayMenu.get())
 
         self.apply_button = ctk.CTkButton(self, text="Apply", command=self.store_Inputvalues)
         self.apply_button.pack(side=ctk.BOTTOM, anchor=ctk.E, padx=20, pady=20)
@@ -50,10 +50,6 @@ class addwindow(ctk.CTkToplevel):
             font=("TkMenuFont", 15)
         )
         self.add_button.pack(pady=(15,0))
-
-    def newprint(self,var="Sunday"):
-        print(var)
-        self.setoldTodo_textinput(var)
 
     def add_textinput(self, oldTodo = None):
         if len(self.entrykeys) < 10:
@@ -87,10 +83,10 @@ class addwindow(ctk.CTkToplevel):
             self.inputtext["Sunday"].append(inputvalue)
         print("OK", self.inputtext, "\n")
 
-    def setoldTodo_textinput(self, day):
+    def setoldTodo_textinput(self):
         #for day in todoList:
-        for items in todoList[day]:
-            self.add_textinput(items)
+            for items in todoList["Sunday"]:
+                self.add_textinput(items)
 
 class Todo_App(ctk.CTk):
     def __init__(self, *args, **kwargs):

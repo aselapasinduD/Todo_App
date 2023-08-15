@@ -2,7 +2,7 @@ import copy
 from prettytable import PrettyTable
 
 # Fill the blanks in todo list with this (-):
-def fillBlankToDo(todo_lists):
+def fillBlankToDo(todo_lists, character = "-"):
     newtodo_lists = copy.deepcopy(todo_lists)
     maxLenInList = 0
     for day in newtodo_lists:
@@ -12,7 +12,7 @@ def fillBlankToDo(todo_lists):
         newmaxLenInList = maxLenInList - len(newtodo_lists[day])
         if newmaxLenInList != 0 and newmaxLenInList > 0:
             for i in range(newmaxLenInList):
-                newtodo_lists[day].append("-")
+                newtodo_lists[day].append(character)
     return newtodo_lists
 
 # PrettyTable For ToDo lists:
