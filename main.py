@@ -2,6 +2,7 @@ import sys
 import tkinter as tk
 import customtkinter as ctk
 import copy as cy
+import threading as thd
 
 # Import App funtions:
 sys.path.insert(0, './src/functions')
@@ -9,36 +10,46 @@ from printtables import myToDoTable, myToDoTableOneDay, fillBlankToDo
 from setuptodolist import setupList, writeToDo
 
 # SetupOld Lists
-todoList = setupList()
 
 app_bg = "#ffffff"
 column_bg = "#a0c6f2"
 
-
 gui_V = input("Do you wanna run GUI Version (Y/n): ")
+todoList = setupList()
 ctk.set_appearance_mode("system")
 
 class addwindow(ctk.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.geometry("380x500")
-        self.resizable(True, True)
+        #self.geometry("500x500")
+        self.grab_set()
+        self.title("Edit todo Table")
+        self.resizable(False, False)
+        self.update_idletasks()
+
+        self.refresh_todoTable = Todo_App()
 
         self.entrykeys = []
+        self.todoList=setupList()
+        print(f"refreshed todoList = {self.todoList}\n")
 
         #self.label = ctk.CTkLabel(self, text="ToplevelWindow")
         #self.label.pack(pady = 10)
-        var = ctk.StringVar(value="Sunday")
-        self.dayMenu = ctk.CTkOptionMenu(self, font=("TkMenuFont", 20), values=list(todoList.keys()), anchor="center", variable=var, command=self.newprint)
-        self.dayMenu.pack(fill="both",pady=20, padx=10)
+        var = ctk.StringVar(value = "Sunday")
+        self.dayMenu = ctk.CTkOptionMenu(
+            self,
+            font=("TkMenuFont", 20),
+            values=list(self.todoList.keys()),
+            anchor="center",
+            variable=var,
+            command=self.updateWithDay_inTextinput
+        )
+        self.dayMenu.pack(fill="both", ipady=4, pady=(20,10), padx=15)
 
-        self.apply_button = ctk.CTkButton(self, text="Apply", command=self.store_Inputvalues)
-        self.apply_button.pack(side=ctk.BOTTOM, anchor=ctk.E, padx=20, pady=20)
+        self.textinput_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.textinput_frame.pack(anchor=ctk.CENTER, fill="both", padx=40, pady=0)
 
-        self.textinput_frame = ctk.CTkScrollableFrame(self)
-        self.textinput_frame.pack(fill="both")
-
-        self.setoldTodo_textinput()
+        self.setoldTodo_textinput(self.dayMenu.get())
         self.add_textinput()
         self.add_button = ctk.CTkButton(
             self,
@@ -47,88 +58,127 @@ class addwindow(ctk.CTkToplevel):
             width=250,
             height=30,
             corner_radius=30,
-            font=("TkMenuFont", 15)
+            font=("TkMenuFont", 18)
         )
-        self.add_button.pack(pady=(15,0))
+        self.add_button.pack(pady=(10,0))
 
-    def newprint(self,var="Sunday"):
-        print(var)
-        self.setoldTodo_textinput(var)
+        button_frame = ctk.CTkFrame(self)
+        button_frame.pack(side=ctk.BOTTOM, pady=10)
+        self.apply_button = ctk.CTkButton(button_frame, text="Apply", command=lambda:self.store_Inputvalues())
+        self.close_button = ctk.CTkButton(button_frame, text="Close", command=self.close_window)
+        self.apply_button.pack(side=ctk.LEFT, padx=15, pady=15)
+        self.close_button.pack(side=ctk.RIGHT, padx=15, pady=15)
+
+        self.updateWithDay_inTextinput(self.dayMenu.get())
+        self.textinput_frame.bind("<Configure>", self.set_windowcenter)
+        self.protocol("WM_DELETE_WINDOW", self.close_window)
+        print("----Add Widnow was Loaded----")
+
+    def updateWithDay_inTextinput(self,var):
+        self.currentDay = var
+        for childwidget in self.textinput_frame.winfo_children():
+            childwidget.destroy()
+            self.entrykeys = []
+        self.setoldTodo_textinput(self.currentDay)
+
+        if len(self.todoList[self.currentDay]) == 0:
+            self.add_textinput()
+        print(self.currentDay)
 
     def add_textinput(self, oldTodo = None):
         if len(self.entrykeys) < 10:
-            frame = ctk.CTkFrame(self.textinput_frame)
+            frame = ctk.CTkFrame(self.textinput_frame, fg_color= "transparent")
             frame.pack(pady=(15,0))
 
             textinput = ctk.CTkEntry(frame, placeholder_text="Enter your Todo", justify=ctk.CENTER, width=250, height=30, corner_radius=30)
-            textinput.pack(side=ctk.LEFT)
+            textinput.pack(side=ctk.LEFT, pady=0)
             if oldTodo is not None:
                 textinput.insert(0, string = oldTodo)
-            else:
-                textinput.insert(0, string = "New String")
+            #else:
+                #textinput.insert(0, string = "New String")
 
             remove_button = ctk.CTkButton(frame, text="X", command=lambda:self.remove_textinput(frame, textinput), width=30, height=30, corner_radius=30)
-            remove_button.pack(side=ctk.LEFT, padx=(10, 0))
+            remove_button.pack(side=ctk.LEFT, padx=(10, 0), pady=0)
 
             self.entrykeys.append(textinput)
         else:
             print("Maxmum List Size is 10")
 
     def remove_textinput(self, frame, textinput):
+        print(f"----Removing {textinput.get()}----")
         if textinput in self.entrykeys:
+            try:
+                self.todoList[self.currentDay].remove(textinput.get())
+            except:
+                pass
             frame.pack_forget()
             frame.destroy()
             self.entrykeys.remove(textinput)
+            print("----Remove Success----")
+        else:
+            print(f"-----{textinput} Entry Key didn't exists in entry list----\n----Remove Unsuccess----")
 
     def store_Inputvalues(self):
-        self.inputtext = cy.deepcopy(todoList)
+        print("----Todo list Storing----")
+        self.inputtext = cy.deepcopy(self.todoList)
         for key in self.entrykeys:
             inputvalue = key.get()
-            self.inputtext["Sunday"].append(inputvalue)
-        print("OK", self.inputtext, "\n")
+            self.inputtext[self.currentDay].append(inputvalue)
+        print("Store = ",self.todoList)
+        todoList = setupList()
+        print("After Setup Store = ",self.todoList)
+        self.todoList = self.inputtext
+        writeToDo(self.inputtext)
+        #Todo_App.refresh_todoTable()
+        print("----Todo List Store Success----")
 
     def setoldTodo_textinput(self, day):
-        #for day in todoList:
-        for items in todoList[day]:
+        self.todoList = setupList()
+        for items in self.todoList[day]:
             self.add_textinput(items)
 
+    #def checkExists(self):
+
+    def set_windowcenter(self, event):
+        x = self.winfo_width()
+        y = self.winfo_width() + 200
+        center = f"{(self.winfo_screenwidth()//2) - (x//2)}+{(self.winfo_screenheight()//2) - (y//2)}"
+        self.geometry(f"{x}x{y}+{center}")
+        print("----Set Add Window to Center----")
+
+    def close_window(self):
+        print("----Closed The Add Window----")
+        self.refresh_todoTable.refresh_todoTable()
+        self.destroy()
+
+#    def run_once(f):
+#        def wrapper(*args,**kwargs):
+#            if not wrapper.has_run:
+#                wrapper.has_run=True
+#                return f(*args, **kwargs)
+#        wrapper.has_run = False
+#        return wrapper
+#    @run_once
+#    def run_centerwindow(self):
+#
+#        print("OK")
+
 class Todo_App(ctk.CTk):
+    global todoList
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        print("----Starting App----")
         self.title("ToDo App")
-        self.geometry('700x500')
-        self.eval("tk::PlaceWindow . center")
+        self.resizable(True, True)
+        #self.eval("tk::PlaceWindow . center")
 
-        self.todo_table = ctk.CTkFrame(self, width=800, height=400)
-        self.todo_table.pack(fill = "both")#.grid(row=0, column=0)
-        #self.todo_table.pack_propagate(False)
+        self.todoList = setupList()
 
-        self.fillblanktodolist = fillBlankToDo(todoList, " ")
-
-        for i, day in enumerate(self.fillblanktodolist):
-            if i == 0:
-                fpadx = 20
-            else:
-                fpadx = 0
-            if i >= 4:
-                brow = 7
-                i -= 4
-            else:
-                brow = 0
-            self.tododay_label = ctk.CTkLabel(self.todo_table, text=day, bg_color="transparent", font=("TkMenuFont", 24), width=16, height=1)
-            self.tododay_label.grid(row=0 + brow, column=i, ipadx = 10, ipady = 10, padx = (fpadx, 20 ), pady = (10, 0 ))
-
-            for x, value in enumerate(self.fillblanktodolist[day]):
-                if x == len(self.fillblanktodolist[day]) -1:
-                    bpady = 20
-                else:
-                    bpady = 0
-                self.todo_label = ctk.CTkLabel(self.todo_table, text=value, bg_color="transparent", font=("TkMenuFont", 22), width=20, height=1)
-                self.todo_label.grid(row=x + 1 + brow, column=i, ipadx = 8, padx = (fpadx, 20 ), pady = (5, bpady))
-
+        self.menu_bar()
+        self.make_todoTable()
 
         self.button_frame = ctk.CTkFrame(self, height = 100)
-        self.button_frame.pack(fill = "both")#.grid(row=1, column=0)
+        self.button_frame.pack(fill = "both")
         #self.button_frame.pack_propagate(False)
 
         self.addbutton = ctk.CTkButton(
@@ -137,11 +187,129 @@ class Todo_App(ctk.CTk):
             font = ("TkHeadingFont", 18),
             text_color = "white",
             cursor = "hand2",
-            command = self.open_Addwindow
+            command = self.open_Addwindow,
+            corner_radius=20
         )
-        self.addbutton.pack(pady = (0, 20))
+        self.addbutton.pack(side=ctk.LEFT, padx=20, pady = 20)
+
+        self.refreshButton = ctk.CTkButton(
+            self.button_frame,
+            text="Refresh",
+            font=("TkHeadingFont", 18),
+            text_color="white",
+            cursor="hand2",
+            command=self.refresh_todoTable,
+            corner_radius = 20
+        )
+        self.refreshButton.pack(side=ctk.LEFT, padx=20, pady=20)
+
+        self.delete_All = ctk.CTkButton(
+            self.button_frame,
+            text="Delete All",
+            font=("TkHeadingFont", 18),
+            text_color="white",
+            cursor="hand2",
+            command=self.delete_todoList,
+            corner_radius=20
+        )
+        self.delete_All.pack(side=ctk.RIGHT, padx=20, pady=20)
 
         self.Addwindow = None
+
+        self.todo_table.bind('<Configure>', self.set_geometry)
+        self.protocol("WM_DELETE_WINDOW", self.exit_App)
+        print("----Started App----")
+
+    def make_todoTable(self):
+        print("----Making Todo Table----")
+        self.todo_table = ctk.CTkFrame(self, width=800, height=800, border_color="#202121", border_width=2, corner_radius=30)
+        self.todo_table.pack(fill = "both", padx = 20, pady = 20)
+        #self.todo_table.pack_propagate(False)
+
+        self.fillblanktodolist = setupList()#todoList#fillBlankToDo(todoList, " ")
+        print("todoList =",self.todoList)
+        print("fillblanktodolist =",self.fillblanktodolist)
+
+        maxcolumns = 0
+        for day in self.fillblanktodolist:
+            if maxcolumns < len(self.fillblanktodolist[day]):
+                maxcolumns = len(self.fillblanktodolist[day])
+
+        maxtodo = 0
+        for day in self.fillblanktodolist:
+            if maxtodo < len(day):
+                maxtodo = len(day)
+            for todo in self.fillblanktodolist[day]:
+                if maxtodo < len(todo):
+                    maxtodo = len(todo)
+
+        listfg_color = "#323232"
+
+        for i, day in enumerate(self.fillblanktodolist):
+            tableBpad = 0
+            if i >= 4:
+                brow = maxcolumns + 1
+                i -= 4
+                if len(self.fillblanktodolist[day]) == 0:
+                    bpady = 15
+                else:
+                    bpady = 0
+                for h in list(self.fillblanktodolist.keys())[4:]:
+                    if tableBpad < len(self.fillblanktodolist[h]):
+                        tableBpad = len(self.fillblanktodolist[h])
+            else:
+                brow = 0
+                bpady= 0
+            if i == 3:
+                lpadx = 5
+            else:
+                lpadx = 0
+            if i == 0:
+                fpadx = 15
+            else:
+                fpadx = 0
+
+            self.tododay_label = ctk.CTkLabel(
+                self.todo_table,
+                text=day,compound=ctk.BOTTOM,
+                fg_color=listfg_color,
+                font=("TkMenuFont", 24),
+                width=maxtodo*12,
+                height=1,
+                corner_radius=20
+            )
+            self.tododay_label.grid(row=0 + brow, column=i, ipadx = 10, ipady = 10, padx = (fpadx, 10 + lpadx ), pady = (15, bpady ))
+
+            for x, value in enumerate(self.fillblanktodolist[day]):
+                bpady = 0
+                if brow != 0:
+                    if tableBpad == len(self.fillblanktodolist[day]):
+                        if x == len(self.fillblanktodolist[day]) -1:
+                            bpady = 15
+                    else:
+                        bpady = 0
+                else:
+                    bpady = 0
+
+                self.mark_done = ctk.CTkCanvas(self.todo_table, width=maxtodo*12, height=0, bg=listfg_color)
+                self.mark_done.grid(row=x + 1 + brow, column=i, ipadx = 8, ipady = 6, padx = (fpadx, 10 ), pady = (3, bpady))
+
+                self.todo_label = ctk.CTkLabel(
+                    self.todo_table,
+                    text=value,
+                    fg_color=listfg_color,
+                    bg_color="transparent",
+                    font=("TkMenuFont", 20),
+                    width=maxtodo*12,
+                    height=1,
+                    corner_radius=20
+                )
+                self.todo_label.grid(row=x + 1 + brow, column=i, ipadx = 8, ipady = 6, padx = (fpadx, 10 ), pady = (3, bpady))
+
+                self.mark_done.create_line(0, 10, maxtodo*12, 10, width=2, capstyle="round")
+
+        #self.todo_table.bind('<Configure>', self.set_geometry)
+        print("----Successfuly Maded----")
 
     def open_Addwindow(self):
         if self.Addwindow is None or not self.Addwindow.winfo_exists():
@@ -149,83 +317,63 @@ class Todo_App(ctk.CTk):
         else:
             self.Addwindow.focus()
 
+    def refresh_todoTable(self):
+        self.todoList = setupList()
+        self.todo_table.destroy()
+        self.make_todoTable()
+        self.button_frame.pack_forget()
+        self.button_frame.pack(fill="both")
+        print("refresh =", self.todoList)
+        print("----Refresh Success----")
+
+    def delete_todoList(self):
+        for day in self.todoList:
+            self.todoList[day] = []
+        writeToDo(self.todoList)
+        self.refresh_todoTable()
+        print(self.todoList)
+        print("Delete is Successful")
+        pass
+
+    def set_geometry(self, event):
+        x = self.winfo_width()
+        y = self.winfo_height()
+        center = f"{(self.winfo_screenwidth()//2) - (x//2)}+{(self.winfo_screenheight()//2) - (y//2)}"
+        self.geometry(f"{x}x{y}+{center}")
+        print("----Set Main Window to Center----")
+
+    def menu_bar(self):
+        menubar = ctk.CTkFrame(self, height=30)
+        menubar.pack(fill="both")
+        self.file_Option(menubar)
+        print("----Menu Bar Loaded----")
+
+    def file_Option(self, frame):
+        options = ["Add all", "Refresh"]
+        var = ctk.StringVar(value = "File")
+        file = ctk.CTkOptionMenu(
+            frame,
+            values=options,
+            variable= var,
+            anchor="center",
+            command=self.trigger_commands,
+            width=80,
+            corner_radius=0
+        )
+        file.pack(side = ctk.LEFT)
+
+    def trigger_commands(self, value):
+        if value == "Add all":
+            self.open_Addwindow()
+        elif value == "Refresh":
+            self.refresh_todoTable()
+        else:
+            print("----Somthing Wrong----")
+    def exit_App(self):
+        self.destroy()
+        exit()
 
 App = Todo_App()
 App.mainloop()
+
 exit()
-
-print ("To Do List")
-instruction = ("\n1. Add ToDo Activities : Add\n2. Mark ToDo Activity Done : Done\n3. Remove ToDo Activity : Remove\n4. Edit ToDo Activity : Edit\n5. Print ToDo Activities : ToDo\n6. Clean ToDo Activities : Clean\n7. Exit Application: Exit")
-print(instruction)
-
-
-# getToDoList can return day and row-number of todoList within lists
-def getToDoList():
-    while True:
-        command = list(input("Enter which day, which row:\nDay:Row-number - ").split(":"))
-        if len(command) != 2:
-            print ("Enter only giviven format (Day:Row-number)\n")
-            continue
-        command[0] = command[0].title()
-        command[1] = int(command[1]) - 1
-        return command
-
-while True:
-    #Enter command and empty input can't enter
-    while True:
-        command = input("Enter The Command: ").lower()
-        if command == '':
-            continue
-        break
-
-    # Command Activities
-    if command == "add":
-        # Input todo list and add them to the "todoList"
-        while True:
-            day, *todo = list(input("Enter ToDo Activity (Day:todolist seperate by :) - ").split(":"))
-            day = day.title()
-            valu = False
-            # Cheking day in todoList:
-            for dayVal in todoList:
-                if dayVal == day:
-                    valu = True
-                    break
-            if valu == True:
-                break
-            print("Enter Validated Day Name")
-
-        for todo_activity in todo:
-            todoList[day].append(todo_activity)
-        writeToDo(todoList)
-    elif command == "done":
-        print("coming soon")
-    elif command == "edit":
-        # Edit added Todo list
-        day,rowNum = getToDoList()
-        print("You going to change this work - ", todoList[day][rowNum])
-        todoList[day][rowNum] = input("Enter your Changes todo - ")
-        writeToDo(todoList)
-        print ("Update Success\n")
-    elif command == "todo":
-        which_day = input("Which day do you want print(If you want all days Enter \"all\": ")
-        if which_day == "all":
-            myToDoTable(todoList)
-        else:
-            myToDoTableOneDay(which_day, todoList)
-    elif command == "remove":
-        day,rowNum = getToDoList()
-        print(todoList[day][rowNum])
-        todoList[day].remove(todoList[day][rowNum])
-        writeToDo(todoList)
-    elif command == "clean":
-        day = input("Which day in the Todolist do you want to clean?\n(set (all) to clean all days at ones) - ")
-        if day.lower() == "all":
-            todoList = {"Sunday":[], "Monday":[], "Tuesday":[], "Wednesday":[], "Thursday":[], "Friday":[], "Saturday":[]}
-            writeToDo(todoList)
-        else:
-            todoList[day.title()] = []
-            writeToDo(todoList)
-    elif command == "exit":
-        exit()
-    else:
-        print("Enter the correct commands from instructions")
