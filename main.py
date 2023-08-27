@@ -13,28 +13,23 @@ from setuptodolist import setupList, writeToDo
 
 app_bg = "#ffffff"
 column_bg = "#a0c6f2"
+listfg_color = "#323232"
 
-gui_V = input("Do you wanna run GUI Version (Y/n): ")
 todoList = setupList()
-ctk.set_appearance_mode("system")
+ctk.set_appearance_mode("dark")
 
 class addwindow(ctk.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        #self.geometry("500x500")
         self.grab_set()
         self.title("Edit todo Table")
         self.resizable(False, False)
         self.update_idletasks()
 
-        self.refresh_todoTable = Todo_App()
-
+        self.doneMarkList = []
         self.entrykeys = []
         self.todoList=setupList()
-        print(f"refreshed todoList = {self.todoList}\n")
 
-        #self.label = ctk.CTkLabel(self, text="ToplevelWindow")
-        #self.label.pack(pady = 10)
         var = ctk.StringVar(value = "Sunday")
         self.dayMenu = ctk.CTkOptionMenu(
             self,
@@ -49,7 +44,7 @@ class addwindow(ctk.CTkToplevel):
         self.textinput_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.textinput_frame.pack(anchor=ctk.CENTER, fill="both", padx=40, pady=0)
 
-        self.setoldTodo_textinput(self.dayMenu.get())
+        #self.setoldTodo_textinput(self.dayMenu.get())
         self.add_textinput()
         self.add_button = ctk.CTkButton(
             self,
@@ -62,28 +57,31 @@ class addwindow(ctk.CTkToplevel):
         )
         self.add_button.pack(pady=(10,0))
 
+        self.Alert_box(self)
         button_frame = ctk.CTkFrame(self)
         button_frame.pack(side=ctk.BOTTOM, pady=10)
         self.apply_button = ctk.CTkButton(button_frame, text="Apply", command=lambda:self.store_Inputvalues())
-        self.close_button = ctk.CTkButton(button_frame, text="Close", command=self.close_window)
+        self.close_button = ctk.CTkButton(button_frame, text="Close", command=lambda:self.close_window())
         self.apply_button.pack(side=ctk.LEFT, padx=15, pady=15)
         self.close_button.pack(side=ctk.RIGHT, padx=15, pady=15)
 
         self.updateWithDay_inTextinput(self.dayMenu.get())
         self.textinput_frame.bind("<Configure>", self.set_windowcenter)
         self.protocol("WM_DELETE_WINDOW", self.close_window)
-        print("----Add Widnow was Loaded----")
+
+        self.set_Alert("--Add Widnow was Loaded--")
 
     def updateWithDay_inTextinput(self,var):
         self.currentDay = var
         for childwidget in self.textinput_frame.winfo_children():
             childwidget.destroy()
             self.entrykeys = []
+            self.doneMarkList = []
         self.setoldTodo_textinput(self.currentDay)
 
         if len(self.todoList[self.currentDay]) == 0:
             self.add_textinput()
-        print(self.currentDay)
+        self.set_Alert(self.currentDay)
 
     def add_textinput(self, oldTodo = None):
         if len(self.entrykeys) < 10:
@@ -94,62 +92,76 @@ class addwindow(ctk.CTkToplevel):
             textinput.pack(side=ctk.LEFT, pady=0)
             if oldTodo is not None:
                 textinput.insert(0, string = oldTodo)
-            #else:
-                #textinput.insert(0, string = "New String")
 
             remove_button = ctk.CTkButton(frame, text="X", command=lambda:self.remove_textinput(frame, textinput), width=30, height=30, corner_radius=30)
             remove_button.pack(side=ctk.LEFT, padx=(10, 0), pady=0)
 
             self.entrykeys.append(textinput)
         else:
-            print("Maxmum List Size is 10")
+            self.set_Alert("--Maxmum List Size is 10--")
 
     def remove_textinput(self, frame, textinput):
-        print(f"----Removing {textinput.get()}----")
         if textinput in self.entrykeys:
+            removeValue = textinput.get()
             try:
-                self.todoList[self.currentDay].remove(textinput.get())
+                self.todoList[self.currentDay].remove(removeValue)
             except:
                 pass
             frame.pack_forget()
             frame.destroy()
+            try:
+                self.doneMarkList.remove(removeValue)
+            except:
+                pass
             self.entrykeys.remove(textinput)
-            print("----Remove Success----")
+
+            self.set_Alert("--Remove Success--")
         else:
-            print(f"-----{textinput} Entry Key didn't exists in entry list----\n----Remove Unsuccess----")
+            self.set_Alert(f"--Value didn't exists in entry list--\n--Remove Unsuccess--")
 
     def store_Inputvalues(self):
-        print("----Todo list Storing----")
         self.inputtext = cy.deepcopy(self.todoList)
+        self.inputtext[self.currentDay].clear()
         for key in self.entrykeys:
             inputvalue = key.get()
             self.inputtext[self.currentDay].append(inputvalue)
-        print("Store = ",self.todoList)
-        todoList = setupList()
-        print("After Setup Store = ",self.todoList)
+        for value in self.doneMarkList:
+            indexNum = self.inputtext[self.currentDay].index(value)
+            self.inputtext[self.currentDay][indexNum] = "!" + self.inputtext[self.currentDay][indexNum]
         self.todoList = self.inputtext
         writeToDo(self.inputtext)
-        #Todo_App.refresh_todoTable()
-        print("----Todo List Store Success----")
+        self.set_Alert("--Wrote is success--\n--Todo List Store Success--")
 
     def setoldTodo_textinput(self, day):
         self.todoList = setupList()
         for items in self.todoList[day]:
+            if items[0] == "!":
+                items = items[1:]
+                self.doneMarkList.append(items)
             self.add_textinput(items)
 
     #def checkExists(self):
 
     def set_windowcenter(self, event):
         x = self.winfo_width()
-        y = self.winfo_width() + 200
+        y = self.winfo_width() + 300
         center = f"{(self.winfo_screenwidth()//2) - (x//2)}+{(self.winfo_screenheight()//2) - (y//2)}"
         self.geometry(f"{x}x{y}+{center}")
-        print("----Set Add Window to Center----")
 
     def close_window(self):
-        print("----Closed The Add Window----")
-        self.refresh_todoTable.refresh_todoTable()
         self.destroy()
+
+    def Alert_box(self, frame):
+        self.alert = ctk.CTkLabel(frame, text="Working", text_color="#fb0019")
+        self.alert.pack(fill=ctk.X, side=ctk.BOTTOM, pady=5)
+    def set_Alert(self, text):
+        self.alert.configure(text=text)
+        self.setTimer(self.Alert)
+    def Alert(self):
+        self.alert.configure(text="")
+    def setTimer(self, function, time=5.0):
+        timer = thd.Timer(time,function)
+        timer.start()
 
 #    def run_once(f):
 #        def wrapper(*args,**kwargs):
@@ -167,7 +179,6 @@ class Todo_App(ctk.CTk):
     global todoList
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        print("----Starting App----")
         self.title("ToDo App")
         self.resizable(True, True)
         #self.eval("tk::PlaceWindow . center")
@@ -218,17 +229,16 @@ class Todo_App(ctk.CTk):
 
         self.todo_table.bind('<Configure>', self.set_geometry)
         self.protocol("WM_DELETE_WINDOW", self.exit_App)
-        print("----Started App----")
+
+        self.alert.configure(text="--App is Started--")
+        self.setTimer(self.Alert)
 
     def make_todoTable(self):
-        print("----Making Todo Table----")
         self.todo_table = ctk.CTkFrame(self, width=800, height=800, border_color="#202121", border_width=2, corner_radius=30)
         self.todo_table.pack(fill = "both", padx = 20, pady = 20)
         #self.todo_table.pack_propagate(False)
 
         self.fillblanktodolist = setupList()#todoList#fillBlankToDo(todoList, " ")
-        print("todoList =",self.todoList)
-        print("fillblanktodolist =",self.fillblanktodolist)
 
         maxcolumns = 0
         for day in self.fillblanktodolist:
@@ -243,23 +253,29 @@ class Todo_App(ctk.CTk):
                 if maxtodo < len(todo):
                     maxtodo = len(todo)
 
-        listfg_color = "#323232"
+        bpadyTrue = True
+        for i, day in enumerate(self.fillblanktodolist):
+            if i >=4:
+                if not len(self.fillblanktodolist[day]) == 0:
+                    bpadyTrue = False
+                    break
 
         for i, day in enumerate(self.fillblanktodolist):
             tableBpad = 0
             if i >= 4:
                 brow = maxcolumns + 1
                 i -= 4
-                if len(self.fillblanktodolist[day]) == 0:
+                if bpadyTrue:
                     bpady = 15
                 else:
-                    bpady = 0
+                    bpady = 5
+
                 for h in list(self.fillblanktodolist.keys())[4:]:
                     if tableBpad < len(self.fillblanktodolist[h]):
                         tableBpad = len(self.fillblanktodolist[h])
             else:
                 brow = 0
-                bpady= 0
+                bpady= 5
             if i == 3:
                 lpadx = 5
             else:
@@ -290,9 +306,10 @@ class Todo_App(ctk.CTk):
                         bpady = 0
                 else:
                     bpady = 0
-
-                self.mark_done = ctk.CTkCanvas(self.todo_table, width=maxtodo*12, height=0, bg=listfg_color)
-                self.mark_done.grid(row=x + 1 + brow, column=i, ipadx = 8, ipady = 6, padx = (fpadx, 10 ), pady = (3, bpady))
+                if value[0] == "!":
+                    doneMark, value = True, value[1:]
+                else:
+                    doneMark = False
 
                 self.todo_label = ctk.CTkLabel(
                     self.todo_table,
@@ -306,10 +323,13 @@ class Todo_App(ctk.CTk):
                 )
                 self.todo_label.grid(row=x + 1 + brow, column=i, ipadx = 8, ipady = 6, padx = (fpadx, 10 ), pady = (3, bpady))
 
-                self.mark_done.create_line(0, 10, maxtodo*12, 10, width=2, capstyle="round")
+                if doneMark:
+                    self.todo_label.configure(font=("TkMenuFont", 20, "overstrike"))
 
-        #self.todo_table.bind('<Configure>', self.set_geometry)
-        print("----Successfuly Maded----")
+                self.todo_label.bind("<Enter>", lambda event, todo_label=self.todo_label: self.hover_LabelEnter(event, todo_label))
+                self.todo_label.bind("<Leave>", lambda event, todo_label=self.todo_label: self.hover_LabelLeave(event, todo_label))
+                self.todo_label.bind("<Button-1>", lambda event, todo_label=self.todo_label, day=self.tododay_label: self.mark_DoneTodo(event, todo_label, day))
+                self.todo_label.bind("<Button-3>", lambda event, todo_label=self.todo_label, day=self.tododay_label: self.unmark_DoneTodo(event, todo_label, day))
 
     def open_Addwindow(self):
         if self.Addwindow is None or not self.Addwindow.winfo_exists():
@@ -323,16 +343,18 @@ class Todo_App(ctk.CTk):
         self.make_todoTable()
         self.button_frame.pack_forget()
         self.button_frame.pack(fill="both")
-        print("refresh =", self.todoList)
-        print("----Refresh Success----")
+
+        self.alert.configure(text="--Refresh Success--")
+        self.setTimer(self.Alert)
 
     def delete_todoList(self):
         for day in self.todoList:
             self.todoList[day] = []
         writeToDo(self.todoList)
         self.refresh_todoTable()
-        print(self.todoList)
-        print("Delete is Successful")
+
+        self.alert.configure(text="--All Todo Lists Deleted--")
+        self.setTimer(self.Alert)
         pass
 
     def set_geometry(self, event):
@@ -340,16 +362,16 @@ class Todo_App(ctk.CTk):
         y = self.winfo_height()
         center = f"{(self.winfo_screenwidth()//2) - (x//2)}+{(self.winfo_screenheight()//2) - (y//2)}"
         self.geometry(f"{x}x{y}+{center}")
-        print("----Set Main Window to Center----")
 
     def menu_bar(self):
         menubar = ctk.CTkFrame(self, height=30)
         menubar.pack(fill="both")
+
         self.file_Option(menubar)
-        print("----Menu Bar Loaded----")
+        self.display_Alert(menubar)
 
     def file_Option(self, frame):
-        options = ["Add all", "Refresh"]
+        options = ["Add All", "Refresh", "Delete All"]
         var = ctk.StringVar(value = "File")
         file = ctk.CTkOptionMenu(
             frame,
@@ -362,16 +384,67 @@ class Todo_App(ctk.CTk):
         )
         file.pack(side = ctk.LEFT)
 
+    def display_Alert(self, frame):
+        self.alert = ctk.CTkLabel(frame, text="", text_color="#fb0019")
+        self.alert.pack(side = ctk.RIGHT, padx=(0,30))
+
     def trigger_commands(self, value):
-        if value == "Add all":
+        if value == "Add All":
             self.open_Addwindow()
         elif value == "Refresh":
             self.refresh_todoTable()
+        elif value == "Delete All":
+            self.delete_todoList()
         else:
-            print("----Somthing Wrong----")
+            self.alert.configure(text="! Somthing Wrong !")
+            self.setTimer(self.Alert)
+
     def exit_App(self):
         self.destroy()
         exit()
+
+    def mark_DoneTodo(self, event, label, day):
+        try:
+            label.configure(font = ("TkMenuFont", 20, "overstrike"))
+            label.configure(fg_color="#322222")
+            index = todoList[day.cget("text")].index(label.cget("text")) #get Index Number for the todoList
+            todoList[day.cget("text")][index] = "!" + label.cget("text") #add mark as done todoList
+
+            writeToDo(todoList, False)
+            self.alert.configure(text="--Write is Success--")
+            self.setTimer(self.Alert)
+
+        except:
+            self.alert.configure(text="! Already Mark as Done !")
+            self.setTimer(self.Alert)
+
+    def unmark_DoneTodo(self, event, label, day):
+        try:
+            label.configure(font = ("TkMenuFont", 20))
+            label.configure(fg_color="#2b3c2b")
+            index = todoList[day.cget("text")].index("!"+label.cget("text")) #get Index Number for the todoList
+            todoList[day.cget("text")][index] = label.cget("text") #remove mark as undone todoList
+
+            writeToDo(todoList, False)
+            self.alert.configure(text="--Write is Success--")
+            self.setTimer(self.Alert)
+
+        except:
+            self.alert.configure(text="Already Unmark")
+            self.setTimer(self.Alert)
+
+    def hover_LabelEnter(self, event, label):
+        label.configure(fg_color="#888888")
+    def hover_LabelLeave(self, event, label):
+        label.configure(fg_color=listfg_color)
+
+    def Alert(self):
+        self.alert.configure(text="")
+
+    def setTimer(self, function, time=5.0):
+        timer = thd.Timer(time,function)
+        timer.start()
+
 
 App = Todo_App()
 App.mainloop()
