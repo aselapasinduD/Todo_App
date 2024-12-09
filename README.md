@@ -12,7 +12,7 @@ This is a personal project I created for fun using Python and the Tkinter librar
 │   ├── App Design Data and Diagrams
 │   │   ├── Todo App (Python) Diagram.jam
 │   │   ├── ToDo App (python).fig
-│   ├── src
+│   ├── srcd
 │   │   ├── functions
 │   │   │   ├── printtables.py
 │   │   │   ├── setuptodolist.py
@@ -80,9 +80,9 @@ Before running the `.exe` file, ensure that the `src` directory is included in t
 ```bash
 ├── Todo_App
 │   ├── src
-│	│   ├── functions
-│	│	│   ├── printtables.py
-│	│	│   ├── setuptodolist.py
+│   │   ├── functions
+│   │   │   ├── printtables.py
+│   │   │   ├── setuptodolist.py
 │   ├── TodoApp.exe
 └── └── Save_todo_list.txt
 ```
