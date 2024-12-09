@@ -1,33 +1,52 @@
-from printtables import myToDoTable
 import customtkinter as ctk
+import os
+import sys
+
+def resource_path(relative_path):
+    #Get absolute path to resource, works for dev and for PyInstaller
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS2
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+sys.path.insert(0, resource_path('.'))
 
 root = ctk.CTk()
 root.withdraw()
 
 ctk.set_appearance_mode("dark")
 
-# Setup Lists and Old Lists
 def setupList():
     try:
-        #this will run if "Save_todo_list.txt" is in.
-        oldToDoList = open("Save_todo_list.txt", "r")
-        oldToDoListRead = oldToDoList.read()
-        oldToDoListRead = [x for x in oldToDoListRead.split("\n") if len(x) > 1]
-        oldToDoListRead = {l.split(":")[0].strip():l.split(":")[1].strip() for l in oldToDoListRead}
+        # Open and read the file
+        with open("Save_todo_list.txt", "r") as oldToDoList:
+            oldToDoListRead = oldToDoList.read().split("\n")
+        oldToDoListRead = [x for x in oldToDoListRead if len(x) > 1]
+        oldToDoListRead = {
+            l.split(":", 1)[0].strip(): l.split(":", 1)[1].strip() for l in oldToDoListRead
+        }
+
+        # Convert string representations to lists
         for day in oldToDoListRead:
             if oldToDoListRead[day] == "[]":
                 oldToDoListRead[day] = []
             else:
                 oldToDoListRead[day] = oldToDoListRead[day].replace("[", "").replace("]", "").replace("'", "")
                 oldToDoListRead[day] = [x.strip() for x in oldToDoListRead[day].split(",")]
+
         todoList = oldToDoListRead
-        #myToDoTable(todoList)
-        oldToDoList.close()
+        
     except:
-        #this will run if "Save_todo_list.txt" didn't exists.oldToDoList
-        todoList = {"Sunday":[], "Monday":[], "Tuesday":[], "Wednesday":[], "Thursday":[], "Friday":[], "Saturday":[]}
-        myToDoTable(todoList)
+        # Initialize with default empty lists if file does not exist
+        todoList = {
+            "Sunday": [], "Monday": [], "Tuesday": [], "Wednesday": [],
+            "Thursday": [], "Friday": [], "Saturday": []
+        }
     return todoList
+
 
 #Write Text File For ToDo list
 class writeToDo():
@@ -48,7 +67,7 @@ class writeToDo():
             self.press_Yes()
 
     def press_Yes(self):
-        self.todoFile = open("Save_todo_list.txt", "w+")
+        self.todoFile = open(resource_path("Save_todo_list.txt"), "w+")
         for day,todo in self.todo_lists.items():
             self.todoFile.write("%s : %s\n" % (day, todo))
         self.todoFile.close()
@@ -58,4 +77,3 @@ class writeToDo():
     def press_No(self):
         setupList()
         self.alert_box.destroy()
-

@@ -1,5 +1,5 @@
 Sunday : ['!Cut my Hair', '!go with my friends', '!go to walk', '!go to shoping', 'make New foods', '!go to shoping', 'do home work']
-Monday : ['goto work', 'go to shoping', '!to do home work', 'get sum rest', 'do party']
+Monday : ['!goto work', '!go to shoping', '!to do home work', 'get sum rest', 'do party']
 Tuesday : ['go to hospital', '!go with gf', '!make some foods', 'do home work']
 Wednesday : ['finish python work', '!earn python gold badge', 'finish my portfolio web site']
 Thursday : []

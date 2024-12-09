@@ -35,4 +35,3 @@ def myToDoTableOneDay(day, todo_list):
     day = day.title()
     myTableOneDay.add_column(day, todo_list[day])
     print(myTableOneDay, "\n")
-

@@ -1,15 +1,22 @@
 import sys
+import os
 import tkinter as tk
 import customtkinter as ctk
 import copy as cy
 import threading as thd
 
-# Import App funtions:
-sys.path.insert(0, './src/functions')
-from printtables import myToDoTable, myToDoTableOneDay, fillBlankToDo
-from setuptodolist import setupList, writeToDo
+def resource_path(relative_path):
+    #Get absolute path to resource, works for dev and for PyInstaller
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS2
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
-# SetupOld Lists
+# Import App funtions:
+sys.path.insert(0, resource_path('src\\functions'))
+from setuptodolist import setupList, writeToDo #this line 20
 
 app_bg = "#ffffff"
 column_bg = "#a0c6f2"
@@ -179,7 +186,7 @@ class Todo_App(ctk.CTk):
     global todoList
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.title("ToDo App")
+        self.title("ToDo App 1.0v")
         self.resizable(True, True)
         #self.eval("tk::PlaceWindow . center")
 
@@ -238,7 +245,7 @@ class Todo_App(ctk.CTk):
         self.todo_table.pack(fill = "both", padx = 20, pady = 20)
         #self.todo_table.pack_propagate(False)
 
-        self.fillblanktodolist = setupList()#todoList#fillBlankToDo(todoList, " ")
+        self.fillblanktodolist = setupList()
 
         maxcolumns = 0
         for day in self.fillblanktodolist:
