@@ -2,7 +2,7 @@
 
 This is a personal project I created for fun using Python and the Tkinter library to build a simple and functional Todo App. The app utilizes a TXT file to store weekly tasks and provides an easy way to manage your to-dos. The project is open-source and available for anyone to clone, explore, and use.
 
-![Image Of The App User Interface.](App Desing Data and Diagrams/todo_app.png)
+![Image Of The App User Interface.](assets/todo_app.png)
 
 ## Project Details
 
