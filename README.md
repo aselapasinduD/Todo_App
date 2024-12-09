@@ -10,12 +10,12 @@ This is a personal project I created for fun using Python and the Tkinter librar
 ```bash
 ├── Todo_App
 │   ├── App Design Data and Diagrams
-│	│   ├── Todo App (Python) Diagram.jam
-│	│   ├── ToDo App (python).fig
+│   │   ├── Todo App (Python) Diagram.jam
+│   │   ├── ToDo App (python).fig
 │   ├── src
-│	│   ├── functions
-│	│	│   ├── printtables.py
-│	│	│   ├── setuptodolist.py
+│   │   ├── functions
+│   │   │   ├── printtables.py
+│   │   │   ├── setuptodolist.py
 │   ├── .gitignore
 │   ├── 3 - (just old code)
 │   ├── icon.ico
